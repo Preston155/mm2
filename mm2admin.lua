@@ -1,5 +1,5 @@
--- MM2 Admin - Fixed for GitHub Loadstring
--- CanvasSize issue resolved
+-- MM2 Admin - Fixed CanvasSize for Loadstring
+-- Version: Working
 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -48,7 +48,7 @@ local function getParent()
 end
 
 local SG = Instance.new("ScreenGui")
-SG.Name = "MM2_" .. tostring(math.random(10000, 99999))
+SG.Name = "MM2Admin"
 SG.ResetOnSpawn = false
 pcall(function() SG.Parent = getParent() end)
 if not SG.Parent then SG.Parent = LocalPlayer:WaitForChild("PlayerGui") end
@@ -63,9 +63,7 @@ Main.Active = true
 Main.Draggable = true
 Main.Parent = SG
 
-local mc = Instance.new("UICorner")
-mc.CornerRadius = UDim.new(0, 10)
-mc.Parent = Main
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 10)
 
 -- Title
 local Title = Instance.new("TextLabel")
@@ -85,10 +83,7 @@ RoleFrame.Size = UDim2.new(0, 300, 0, 35)
 RoleFrame.Position = UDim2.new(0.5, -150, 0, 7)
 RoleFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 RoleFrame.Parent = Main
-
-local rfc = Instance.new("UICorner")
-rfc.CornerRadius = UDim.new(0, 6)
-rfc.Parent = RoleFrame
+Instance.new("UICorner", RoleFrame).CornerRadius = UDim.new(0, 6)
 
 local MLabel = Instance.new("TextLabel")
 MLabel.Size = UDim2.new(0.33, 0, 1, 0)
@@ -129,10 +124,7 @@ Close.TextColor3 = Color3.fromRGB(255, 255, 255)
 Close.TextSize = 20
 Close.Font = Enum.Font.GothamBold
 Close.Parent = Main
-
-local cc = Instance.new("UICorner")
-cc.CornerRadius = UDim.new(0, 6)
-cc.Parent = Close
+Instance.new("UICorner", Close).CornerRadius = UDim.new(0, 6)
 
 -- Content Frame
 local Content = Instance.new("Frame")
@@ -140,10 +132,7 @@ Content.Size = UDim2.new(1, -20, 1, -90)
 Content.Position = UDim2.new(0, 10, 0, 50)
 Content.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 Content.Parent = Main
-
-local contc = Instance.new("UICorner")
-contc.CornerRadius = UDim.new(0, 8)
-contc.Parent = Content
+Instance.new("UICorner", Content).CornerRadius = UDim.new(0, 8)
 
 -- Tab Buttons Frame
 local TabFrame = Instance.new("Frame")
@@ -152,17 +141,17 @@ TabFrame.Position = UDim2.new(0, 5, 0, 5)
 TabFrame.BackgroundTransparency = 1
 TabFrame.Parent = Content
 
--- Tab Content Container
+-- Tab Content Container - USE FRAME NOT SCROLLINGFRAME
 local TabContainer = Instance.new("Frame")
 TabContainer.Size = UDim2.new(1, -10, 1, -50)
 TabContainer.Position = UDim2.new(0, 5, 0, 50)
 TabContainer.BackgroundTransparency = 1
+TabContainer.ClipsDescendants = true
 TabContainer.Parent = Content
 
 -- Tabs
 local TabBtns = {}
 local TabConts = {}
-local CurrentTab = nil
 
 local function CreateTab(name)
     local btn = Instance.new("TextButton")
@@ -175,19 +164,24 @@ local function CreateTab(name)
     btn.Font = Enum.Font.GothamBold
     btn.Parent = TabFrame
     
+    -- USE SCROLLING FRAME WITH MANUAL CANVAS SIZE
     local cont = Instance.new("ScrollingFrame")
     cont.Size = UDim2.new(1, 0, 1, 0)
     cont.BackgroundTransparency = 1
     cont.BorderSizePixel = 0
     cont.ScrollBarThickness = 4
     cont.Visible = false
-    cont.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    cont.CanvasSize = UDim2.new(0, 0, 0, 0)
+    cont.CanvasSize = UDim2.new(0, 0, 10, 0) -- FIXED: Set initial size
     cont.Parent = TabContainer
     
     local layout = Instance.new("UIListLayout")
     layout.Padding = UDim.new(0, 8)
     layout.Parent = cont
+    
+    -- AUTO UPDATE CANVAS SIZE
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        cont.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 20)
+    end)
     
     local pad = Instance.new("UIPadding")
     pad.Padding = UDim.new(0, 5)
@@ -203,7 +197,6 @@ local function CreateTab(name)
         end
         btn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
         cont.Visible = true
-        CurrentTab = cont
     end)
     
     return cont
@@ -243,10 +236,7 @@ local function Toggle(parent, txt, callback)
     b.TextSize = 12
     b.Font = Enum.Font.GothamBold
     b.Parent = f
-    
-    local bc = Instance.new("UICorner")
-    bc.CornerRadius = UDim.new(0, 13)
-    bc.Parent = b
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 13)
     
     local e = false
     b.MouseButton1Click:Connect(function()
@@ -279,20 +269,14 @@ local function Slider(parent, txt, min, max, def, callback)
     bg.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
     bg.BorderSizePixel = 0
     bg.Parent = f
-    
-    local bgc = Instance.new("UICorner")
-    bgc.CornerRadius = UDim.new(0, 4)
-    bgc.Parent = bg
+    Instance.new("UICorner", bg).CornerRadius = UDim.new(0, 4)
     
     local fill = Instance.new("Frame")
     fill.Size = UDim2.new((def - min) / (max - min), 0, 1, 0)
     fill.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
     fill.BorderSizePixel = 0
     fill.Parent = bg
-    
-    local fc = Instance.new("UICorner")
-    fc.CornerRadius = UDim.new(0, 4)
-    fc.Parent = fill
+    Instance.new("UICorner", fill).CornerRadius = UDim.new(0, 4)
     
     local drag = false
     bg.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then drag = true end end)
@@ -317,16 +301,12 @@ local function Btn(parent, txt, callback)
     b.TextSize = 13
     b.Font = Enum.Font.GothamBold
     b.Parent = parent
-    
-    local bc = Instance.new("UICorner")
-    bc.CornerRadius = UDim.new(0, 6)
-    bc.Parent = b
-    
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 6)
     b.MouseButton1Click:Connect(callback)
     return b
 end
 
--- COMBAT TAB CONTENT
+-- COMBAT TAB
 Toggle(CombatTab, "Aimbot (Hold RMB)", function(v) Settings.Aimbot.Enabled = v end)
 Toggle(CombatTab, "Kill Aura", function(v) Settings.Combat.KillAura = v end)
 Slider(CombatTab, "Aimbot FOV", 50, 400, 150, function(v) Settings.Aimbot.FOV = v end)
@@ -365,7 +345,7 @@ Btn(CombatTab, "Kill Sheriff (Murderer Only)", function()
     end
 end)
 
--- VISUAL TAB CONTENT
+-- VISUAL TAB
 Toggle(VisualTab, "ESP", function(v)
     if v then
         for _, p in pairs(Players:GetPlayers()) do
@@ -387,32 +367,27 @@ Toggle(VisualTab, "ESP", function(v)
     end
 end)
 
-Toggle(VisualTab, "Tracers", function(v)
-    -- Tracers implementation would go here
-end)
-
--- TELEPORT TAB CONTENT
+-- TELEPORT TAB
 local PlrList = Instance.new("ScrollingFrame")
 PlrList.Size = UDim2.new(1, -10, 0, 250)
 PlrList.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 PlrList.BorderSizePixel = 0
 PlrList.ScrollBarThickness = 4
-PlrList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+PlrList.CanvasSize = UDim2.new(0, 0, 10, 0)
 PlrList.Parent = TpTab
-
-local plc = Instance.new("UICorner")
-plc.CornerRadius = UDim.new(0, 6)
-plc.Parent = PlrList
+Instance.new("UICorner", PlrList).CornerRadius = UDim.new(0, 6)
 
 local listLay = Instance.new("UIListLayout")
 listLay.Padding = UDim.new(0, 5)
 listLay.Parent = PlrList
 
-local pad = Instance.new("UIPadding")
-pad.Padding = UDim.new(0, 5)
-pad.Parent = PlrList
+listLay:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    PlrList.CanvasSize = UDim2.new(0, 0, 0, listLay.AbsoluteContentSize.Y + 20)
+end)
 
--- MISC TAB CONTENT
+Instance.new("UIPadding", PlrList).Padding = UDim.new(0, 5)
+
+-- MISC TAB
 Toggle(MiscTab, "Fly (Press F)", function(v) Settings.Fly = v end)
 Toggle(MiscTab, "Noclip (Press N)", function(v) Settings.Noclip = v end)
 Slider(MiscTab, "WalkSpeed", 16, 200, 16, function(v)
@@ -554,10 +529,7 @@ local function UpdateList()
             b.TextSize = 12
             b.Font = Enum.Font.GothamBold
             b.Parent = PlrList
-            
-            local bcc = Instance.new("UICorner")
-            bcc.CornerRadius = UDim.new(0, 4)
-            bcc.Parent = b
+            Instance.new("UICorner", b).CornerRadius = UDim.new(0, 4)
             
             b.MouseButton1Click:Connect(function()
                 local myR = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
