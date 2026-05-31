@@ -1,12 +1,11 @@
--- MM2 Advanced Admin - Loadstring Compatible
--- Fixed for GitHub raw hosting
+-- MM2 Admin - Fixed for GitHub Loadstring
+-- CanvasSize issue resolved
 
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
@@ -39,9 +38,9 @@ end
 function RoleSys:Get(p) return self.Roles[p] or self:Detect(p) end
 
 -- Settings
-local Settings = {Aimbot = {Enabled = false, FOV = 150, Smooth = 0.15, MurderAim = true, SheriffAim = true}, Combat = {KillAura = false, Range = 15}, Fly = false, Noclip = false, Speed = 16}
+local Settings = {Aimbot = {Enabled = false, FOV = 150, Smooth = 0.15}, Combat = {KillAura = false, Range = 15}, Fly = false, Noclip = false}
 
--- GUI Parent
+-- GUI
 local function getParent()
     if gethui then return gethui() end
     if syn and syn.protect_gui then local g = Instance.new("ScreenGui") syn.protect_gui(g) g.Parent = game.CoreGui return g end
@@ -64,9 +63,9 @@ Main.Active = true
 Main.Draggable = true
 Main.Parent = SG
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 10)
-corner.Parent = Main
+local mc = Instance.new("UICorner")
+mc.CornerRadius = UDim.new(0, 10)
+mc.Parent = Main
 
 -- Title
 local Title = Instance.new("TextLabel")
@@ -135,7 +134,7 @@ local cc = Instance.new("UICorner")
 cc.CornerRadius = UDim.new(0, 6)
 cc.Parent = Close
 
--- Content
+-- Content Frame
 local Content = Instance.new("Frame")
 Content.Size = UDim2.new(1, -20, 1, -90)
 Content.Position = UDim2.new(0, 10, 0, 50)
@@ -146,29 +145,45 @@ local contc = Instance.new("UICorner")
 contc.CornerRadius = UDim.new(0, 8)
 contc.Parent = Content
 
+-- Tab Buttons Frame
+local TabFrame = Instance.new("Frame")
+TabFrame.Size = UDim2.new(1, -10, 0, 40)
+TabFrame.Position = UDim2.new(0, 5, 0, 5)
+TabFrame.BackgroundTransparency = 1
+TabFrame.Parent = Content
+
+-- Tab Content Container
+local TabContainer = Instance.new("Frame")
+TabContainer.Size = UDim2.new(1, -10, 1, -50)
+TabContainer.Position = UDim2.new(0, 5, 0, 50)
+TabContainer.BackgroundTransparency = 1
+TabContainer.Parent = Content
+
 -- Tabs
 local TabBtns = {}
 local TabConts = {}
+local CurrentTab = nil
 
-local function Tab(name)
+local function CreateTab(name)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.25, -5, 0, 35)
-    btn.Position = UDim2.new((#TabBtns) * 0.25, 2, 0, 5)
+    btn.Size = UDim2.new(0.25, -5, 1, 0)
+    btn.Position = UDim2.new((#TabBtns) * 0.25, 2, 0, 0)
     btn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
     btn.Text = name
     btn.TextColor3 = Color3.fromRGB(200, 200, 200)
     btn.TextSize = 13
     btn.Font = Enum.Font.GothamBold
-    btn.Parent = Content
+    btn.Parent = TabFrame
     
     local cont = Instance.new("ScrollingFrame")
-    cont.Size = UDim2.new(1, -10, 1, -50)
-    cont.Position = UDim2.new(0, 5, 0, 45)
+    cont.Size = UDim2.new(1, 0, 1, 0)
     cont.BackgroundTransparency = 1
     cont.BorderSizePixel = 0
     cont.ScrollBarThickness = 4
     cont.Visible = false
-    cont.Parent = Content
+    cont.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    cont.CanvasSize = UDim2.new(0, 0, 0, 0)
+    cont.Parent = TabContainer
     
     local layout = Instance.new("UIListLayout")
     layout.Padding = UDim.new(0, 8)
@@ -188,15 +203,16 @@ local function Tab(name)
         end
         btn.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
         cont.Visible = true
+        CurrentTab = cont
     end)
     
     return cont
 end
 
-local CombatTab = Tab("COMBAT")
-local VisualTab = Tab("VISUAL")
-local TpTab = Tab("TELEPORT")
-local MiscTab = Tab("MISC")
+local CombatTab = CreateTab("COMBAT")
+local VisualTab = CreateTab("VISUAL")
+local TpTab = CreateTab("TELEPORT")
+local MiscTab = CreateTab("MISC")
 
 TabBtns[1].BackgroundColor3 = Color3.fromRGB(255, 50, 50)
 TabConts[1].Visible = true
@@ -310,13 +326,13 @@ local function Btn(parent, txt, callback)
     return b
 end
 
--- COMBAT
-Toggle(CombatTab, "Aimbot (RMB)", function(v) Settings.Aimbot.Enabled = v end)
+-- COMBAT TAB CONTENT
+Toggle(CombatTab, "Aimbot (Hold RMB)", function(v) Settings.Aimbot.Enabled = v end)
 Toggle(CombatTab, "Kill Aura", function(v) Settings.Combat.KillAura = v end)
 Slider(CombatTab, "Aimbot FOV", 50, 400, 150, function(v) Settings.Aimbot.FOV = v end)
 Slider(CombatTab, "Kill Range", 5, 30, 15, function(v) Settings.Combat.Range = v end)
 
-Btn(CombatTab, "Kill All (Murderer)", function()
+Btn(CombatTab, "Kill All (Murderer Only)", function()
     if RoleSys:Get(LocalPlayer) ~= "Murderer" then return end
     for _, p in pairs(Players:GetPlayers()) do
         if p ~= LocalPlayer and p.Character then
@@ -327,7 +343,7 @@ Btn(CombatTab, "Kill All (Murderer)", function()
     end
 end)
 
-Btn(CombatTab, "Kill Murderer (Sheriff)", function()
+Btn(CombatTab, "Kill Murderer (Sheriff Only)", function()
     if RoleSys:Get(LocalPlayer) ~= "Sheriff" then return end
     for _, p in pairs(Players:GetPlayers()) do
         if RoleSys:Get(p) == "Murderer" and p.Character then
@@ -338,7 +354,7 @@ Btn(CombatTab, "Kill Murderer (Sheriff)", function()
     end
 end)
 
-Btn(CombatTab, "Kill Sheriff (Murderer)", function()
+Btn(CombatTab, "Kill Sheriff (Murderer Only)", function()
     if RoleSys:Get(LocalPlayer) ~= "Murderer" then return end
     for _, p in pairs(Players:GetPlayers()) do
         if RoleSys:Get(p) == "Sheriff" and p.Character then
@@ -349,7 +365,7 @@ Btn(CombatTab, "Kill Sheriff (Murderer)", function()
     end
 end)
 
--- VISUAL
+-- VISUAL TAB CONTENT
 Toggle(VisualTab, "ESP", function(v)
     if v then
         for _, p in pairs(Players:GetPlayers()) do
@@ -371,12 +387,17 @@ Toggle(VisualTab, "ESP", function(v)
     end
 end)
 
--- TELEPORT
+Toggle(VisualTab, "Tracers", function(v)
+    -- Tracers implementation would go here
+end)
+
+-- TELEPORT TAB CONTENT
 local PlrList = Instance.new("ScrollingFrame")
-PlrList.Size = UDim2.new(1, -10, 0, 200)
+PlrList.Size = UDim2.new(1, -10, 0, 250)
 PlrList.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
 PlrList.BorderSizePixel = 0
 PlrList.ScrollBarThickness = 4
+PlrList.AutomaticCanvasSize = Enum.AutomaticSize.Y
 PlrList.Parent = TpTab
 
 local plc = Instance.new("UICorner")
@@ -387,10 +408,17 @@ local listLay = Instance.new("UIListLayout")
 listLay.Padding = UDim.new(0, 5)
 listLay.Parent = PlrList
 
--- MISC
-Toggle(MiscTab, "Fly (F)", function(v) Settings.Fly = v end)
-Toggle(MiscTab, "Noclip (N)", function(v) Settings.Noclip = v end)
-Slider(MiscTab, "WalkSpeed", 16, 200, 16, function(v) Settings.Speed = v local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") if h then h.WalkSpeed = v end end)
+local pad = Instance.new("UIPadding")
+pad.Padding = UDim.new(0, 5)
+pad.Parent = PlrList
+
+-- MISC TAB CONTENT
+Toggle(MiscTab, "Fly (Press F)", function(v) Settings.Fly = v end)
+Toggle(MiscTab, "Noclip (Press N)", function(v) Settings.Noclip = v end)
+Slider(MiscTab, "WalkSpeed", 16, 200, 16, function(v)
+    local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if h then h.WalkSpeed = v end
+end)
 
 -- FOV Circle
 local Circle = Drawing.new("Circle")
@@ -402,8 +430,8 @@ Circle.Filled = false
 local function GetTarget()
     local mr = RoleSys:Get(LocalPlayer)
     local tr = nil
-    if mr == "Sheriff" and Settings.Aimbot.MurderAim then tr = "Murderer"
-    elseif mr == "Murderer" and Settings.Aimbot.SheriffAim then tr = "Sheriff" end
+    if mr == "Sheriff" then tr = "Murderer"
+    elseif mr == "Murderer" then tr = "Sheriff" end
     
     local closest = nil
     local maxDist = Settings.Aimbot.FOV
@@ -447,7 +475,9 @@ RunService.RenderStepped:Connect(function()
                 if p ~= LocalPlayer and p.Character then
                     local pr = p.Character:FindFirstChild("HumanoidRootPart")
                     if pr and (mp.Position - pr.Position).Magnitude <= Settings.Combat.Range then
-                        if (mr == "Murderer" and RoleSys:Get(p) ~= "Murderer") or (mr == "Sheriff" and RoleSys:Get(p) == "Murderer") then mp.CFrame = pr.CFrame end
+                        if (mr == "Murderer" and RoleSys:Get(p) ~= "Murderer") or (mr == "Sheriff" and RoleSys:Get(p) == "Murderer") then
+                            mp.CFrame = pr.CFrame
+                        end
                     end
                 end
             end
@@ -540,8 +570,6 @@ local function UpdateList()
     MLabel.Text = "Murderer: " .. m
     SLabel.Text = "Sheriff: " .. s
     ILabel.Text = "Innocents: " .. ic
-    
-    PlrList.CanvasSize = UDim2.new(0, 0, 0, listLay.AbsoluteContentSize.Y)
 end
 
 task.spawn(function() while task.wait(1) do UpdateList() end end)
